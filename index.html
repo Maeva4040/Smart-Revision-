@@ -303,6 +303,55 @@
   }
 </style>
 </head>
+  <div id="form-inscription">
+  <h2>Créer un compte</h2>
+  <input type="text" id="nom_complet" placeholder="Nom complet" required>
+  <input type="email" id="email" placeholder="Email" required>
+  <input type="text" id="classe" placeholder="Classe / Série" required>
+  <input type="text" id="parrainage" placeholder="Code de parrainage (optionnel)">
+  <input type="password" id="mot_de_passe" placeholder="Mot de passe" required>
+  <button onclick="creerCompte()">Créer mon compte</button>
+  <p id="message-inscription"></p>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://rjmoignaxtwosysajqdg.supabase.co";
+  const SUPABASE_KEY = "COLLE_TA_CLE_PUBLIABLE_ICI";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function creerCompte() {
+    const nom_complet = document.getElementById('nom_complet').value;
+    const email = document.getElementById('email').value;
+    const classe = document.getElementById('classe').value;
+    const parrainage = document.getElementById('parrainage').value;
+    const mot_de_passe = document.getElementById('mot_de_passe').value;
+    const messageEl = document.getElementById('message-inscription');
+
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: mot_de_passe
+    });
+
+    if (error) {
+      messageEl.textContent = "Erreur : " + error.message;
+      return;
+    }
+
+    const { error: erreurProfil } = await supabase.from('profils').insert({
+      id: data.user.id,
+      nom_complet: nom_complet,
+      classe: classe,
+      code_parrainage: parrainage
+    });
+
+    if (erreurProfil) {
+      messageEl.textContent = "Compte créé mais erreur profil : " + erreurProfil.message;
+    } else {
+      messageEl.textContent = "Compte créé avec succès !";
+    }
+  }
+</script>
+    sb_publishable_SEpp8YirCmp6A4eNYg2wvQ_LqP8FpxJ
+</div>
 <body>
 
 <div class="phone">
