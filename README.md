@@ -1,1 +1,1 @@
-site web educatif pour systeme educatif camerounais
+site web educatif pour systeme scolaire camerounais
