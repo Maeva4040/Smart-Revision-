@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f4d28">
+<title id="pageTitle">Smart Révision CMR</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<style>
+  :root{
+    --vert: #0f4d28;
+    --rouge: #c8102e;
+    --or: #f0a500;
+    --fond: #fdfcf8;
+  }
+  html, body{
+    background:var(--fond);
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    margin:0;
+    padding:0;
+    height:100%;
+    overflow:hidden;
+  }
+
+  .phone{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    margin:0;
+    background:var(--fond);
+  }
+  .screen{
+    background:var(--fond);
+    overflow:hidden;
+    height:100%;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---- SPLASH ---- */
+  #splash{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    background:#fff;
+    text-align:center;
+    padding:40px 25px;
+  }
+  .brand-line{ font-weight:900; font-size:2.6rem; letter-spacing:1px; line-height:1; }
+  .txt-vert{ color:var(--vert); }
+  .txt-rouge{ color:var(--rouge); }
+  .ribbon{
+    background:var(--vert); color:#fff; font-size:.8rem; font-weight:700;
+    letter-spacing:1px; padding:10px 24px; border-radius:4px; margin-top:16px;
+  }
+  .progress{ height:10px; border-radius:10px; }
+  .progress-bar{ background-color:var(--vert); }
+
+  /* ---- SHARED APP LAYOUT ---- */
+  .app-screen{ display:none; flex-direction:column; height:100%; overflow:hidden; }
+  .app-screen.active{ display:flex; }
+  .screen-content{ flex:1 1 auto; overflow-y:auto; padding:calc(env(safe-area-inset-top,0px) + 16px) 18px 10px; -webkit-overflow-scrolling:touch; }
+
+  .card-custom{ border:1px solid #eee; border-radius:16px; box-shadow:0 2px 6px rgba(0,0,0,.04); }
+
+  .profile-pic-container { position: relative; display: inline-block; cursor: pointer; }
+  .profile-img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid #fff; }
+
+  #profileMenu {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0px 5px 20px rgba(0,0,0,0.3);
+      z-index: 1050;
+      width: 280px;
+      text-align: center;
+  }
+  #profileOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1040;
+  }
+
+  .avatar-circle{
+    width:56px; height:56px; border-radius:50%; background:var(--or);
+    display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0;
+  }
+  .xp-progress{ height:9px; border-radius:10px; }
+  .xp-progress .progress-bar{ background:linear-gradient(90deg,#f7b733,#f0a500); }
+
+  .stat-box{
+    border:1px solid #eee; border-radius:14px; text-align:center;
+    padding:14px 6px; box-shadow:0 2px 6px rgba(0,0,0,.03);
+  }
+
+  .btn-cta{ background:var(--vert); color:#fff; font-weight:700; border-radius:14px; padding:14px; }
+  .btn-cta:hover{ background:#0c3d20; color:#fff; }
+
+  .bottom-nav{
+    border-top:1px solid #eee;
+    padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 14px);
+    background:var(--fond);
+    flex-shrink:0;
+  }
+  .nav-btn{
+    background:none; border:none; color:#999; font-size:.7rem; font-weight:600;
+    text-align:center; padding:0; flex:1;
+  }
+  .nav-btn.active-nav{ color:var(--vert); }
+  .nav-btn .icon{ font-size:1.3rem; display:block; }
+
+  .page-title{ font-weight:800; font-size:1.15rem; margin:14px 0 12px; color:#111; }
+  .back-btn{ background:none; border:none; font-size:1.2rem; color:#111; padding:0; }
+
+  .pill-toggle{
+    display:flex; background:#eee; border-radius:12px; padding:4px; margin-bottom:16px;
+  }
+  .pill-toggle button{
+    flex:1; border:none; background:none; padding:8px; border-radius:10px;
+    font-weight:700; font-size:.85rem; color:#333;
+  }
+  .pill-toggle button.active-pill{ background:var(--vert); color:#fff; }
+  .pill-toggle.red button.active-pill{ background:var(--rouge); }
+
+  .subject-row{
+    display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #eee;
+    border-radius:14px; padding:12px 14px; margin-bottom:10px;
+  }
+  .subject-icon{ font-size:1.4rem; }
+  .subject-name{ font-weight:700; font-size:.9rem; margin-bottom:4px; }
+  .subject-progress{ height:6px; border-radius:10px; }
+
+  .quiz-option{
+    display:flex; align-items:center; gap:10px; border:1px solid #ddd; border-radius:12px;
+    padding:12px 14px; margin-bottom:10px; font-weight:600; font-size:.9rem;
+  }
+  .quiz-option.correct{ border-color:var(--vert); background:#eafaf0; }
+  .quiz-letter{
+    width:26px; height:26px; border-radius:50%; border:1px solid #999;
+    display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700;
+  }
+  .quiz-option.correct .quiz-letter{ background:var(--vert); color:#fff; border-color:var(--vert); }
+
+  .defi-card{ background:#fff; border:1px solid #eee; border-radius:16px; padding:16px; margin-bottom:14px; }
+  .rank-row{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f2f2f2; }
+  .rank-medal{ width:26px; text-align:center; font-weight:800; }
+  .rank-avatar{ width:38px; height:38px; border-radius:50%; background:#eee; display:flex; align-items:center; justify-content:center; }
+
+  .profile-list-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 4px; border-bottom:1px solid #f2f2f2; font-weight:600; font-size:.9rem; cursor:pointer;
+  }
+
+  .form-control {
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    font-size: .95rem;
+  }
+  .form-control:focus {
+    border-color: var(--vert);
+    box-shadow: 0 0 0 0.2rem rgba(15, 77, 40, 0.15);
+  }
+
+  .password-container { position: relative; }
+  .password-container .form-control { padding-right: 45px; }
+  .toggle-password {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #777; z-index: 10;
+  }
+
+  .lang-switch-container { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+  .lang-btn {
+    border: 1px solid var(--vert); background: transparent; color: var(--vert);
+    font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; transition: all 0.2s;
+  }
+  .lang-btn.active-lang { background: var(--vert); color: #fff; }
+
+  /* Style Flashcards */
+  .flashcard-container {
+    perspective: 1000px;
+    width: 100%;
+    height: 220px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  .flashcard {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .flashcard-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #eee;
+  }
+  .flashcard-back {
+    background: #f0f7f4;
+    transform: rotateY(180deg);
+    color: var(--vert);
+  }
+
+  /* ---- CHAT IA ---- */
+  .chat-window{ display:flex; flex-direction:column; gap:10px; padding-bottom:10px; }
+  .chat-bubble{ max-width:80%; padding:10px 14px; border-radius:16px; font-size:.88rem; line-height:1.4; }
+  .chat-bubble.bot{ background:#f0f7f4; color:#111; align-self:flex-start; border-bottom-left-radius:4px; }
+  .chat-bubble.user{ background:var(--vert); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+  .chat-input-bar{ display:flex; gap:8px; padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 10px); border-top:1px solid #eee; background:#fff; flex-shrink:0; }
+  .chat-input-bar input{ flex:1; border:1px solid #ddd; border-radius:20px; padding:10px 16px; font-size:.9rem; }
+  .chat-send-btn{ background:var(--vert); color:#fff; border:none; width:42px; height:42px; border-radius:50%; flex-shrink:0; }
+  .chat-typing{ font-size:.8rem; color:#999; font-style:italic; padding-left:4px; }
+
+  /* ---- BOUTIQUE ---- */
+  .shop-item{ background:#fff; border:1px solid #eee; border-radius:14px; padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:12px; }
+  .shop-icon{ font-size:1.8rem; width:46px; text-align:center; }
+  .shop-buy-btn{ border:none; border-radius:10px; padding:8px 12px; font-weight:700; font-size:.8rem; background:var(--or); color:#fff; }
+  .shop-buy-btn.owned{ background:#ccc; }
+  .theme-swatch{ width:22px; height:22px; border-radius:50%; display:inline-block; border:2px solid #fff; box-shadow:0 0 0 1px #ddd; }
+
+  /* ---- STATS ---- */
+  .stat-mini-card{ background:#fff; border:1px solid #eee; border-radius:14px; padding:14px; margin-bottom:12px; }
+  .subject-stat-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .subject-stat-row .lbl{ width:120px; font-size:.8rem; font-weight:600; flex-shrink:0; }
+  .subject-stat-row .bar-bg{ flex:1; height:10px; background:#eee; border-radius:10px; overflow:hidden; }
+  .subject-stat-row .bar-fill{ height:100%; background:var(--vert); }
+  .subject-stat-row .pct{ width:38px; text-align:right; font-size:.78rem; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="screen">
+
+    <!-- ================= SPLASH ================= -->
+    <div id="splash">
+      <div class="mb-3">
+        <svg viewBox="0 0 220 200" width="180" height="160">
+          <polygon points="110,0 118,22 141,22 122,35 129,58 110,44 91,58 98,35 79,22 102,22" fill="#f0a500" stroke="#0f4d28" stroke-width="1"/>
+          <path d="M20 150 Q70 110 108 145 L108 100 Q70 70 20 100 Z" fill="#0f4d28"/>
+          <path d="M196 150 Q146 110 108 145 L108 100 Q146 70 196 100 Z" fill="#c8102e"/>
+          <rect x="55" y="88" width="34" height="10" fill="#111"/>
+          <polygon points="35,80 105,80 70,65 3,80" fill="#111"/>
+          <rect x="88" y="95" width="46" height="80" rx="8" fill="#111"/>
+          <rect x="93" y="102" width="36" height="60" rx="2" fill="#c8102e"/>
+        </svg>
+      </div>
+      <div class="brand-line txt-vert">SMART</div>
+      <div class="brand-line txt-rouge">RÉVISION</div>
+      <div class="brand-line txt-vert">CMR</div>
+      <div class="ribbon" data-i18n="splashRibbon">LE SUCCÈS AU BOUT DES DOIGTS</div>
+      <div class="w-100 mt-5">
+        <div class="fw-semibold mb-2" style="color:var(--vert)" data-i18n="loading">Chargement...</div>
+        <div class="progress"><div class="progress-bar" id="progressFill" style="width:0%"></div></div>
+        <div class="fw-bold mt-2" id="progressPct" style="color:var(--vert)">0 %</div>
+      </div>
+    </div>
+
+    <!-- ================= AUTH CHOIX ================= -->
+    <div class="app-screen" id="screen-auth-choix">
+      <div class="screen-content d-flex flex-column justify-content-center text-center px-4">
+        <div class="mb-3">
+          <svg viewBox="0 0 220 200" width="110" height="100">
+            <polygon points="110,0 118,22 141,22 122,35 129,58 110,44 91,58 98,35 79,22 102,22" fill="#f0a500" stroke="#0f4d28" stroke-width="1"/>
+            <path d="M20 150 Q70 110 108 145 L108 100 Q70 70 20 100 Z" fill="#0f4d28"/>
+            <path d="M196 150 Q146 110 108 145 L108 100 Q146 70 196 100 Z" fill="#c8102e"/>
+            <rect x="55" y="88" width="34" height="10" fill="#111"/>
+            <polygon points="35,80 105,80 70,65 3,80" fill="#111"/>
+            <rect x="88" y="95" width="46" height="80" rx="8" fill="#111"/>
+            <rect x="93" y="102" width="36" height="60" rx="2" fill="#c8102e"/>
+          </svg>
+        </div>
+        <h2 class="fw-bold mb-2" style="color:var(--vert);" data-i18n="welcomeTitle">Bienvenue !</h2>
+        <p class="text-secondary small mb-4" data-i18n="welcomeSub">Révise tes cours, progresse et réussis tes examens au Cameroun.</p>
+        <button class="btn btn-cta w-100 mb-3 border-0" onclick="showScreen('auth-connexion')" data-i18n="btnLogin">Se connecter</button>
+        <button class="btn btn-outline-success w-100 fw-bold py-3 mb-4" style="border-radius:14px; border-color:var(--vert); color:var(--vert);" onclick="showScreen('auth-inscription')" data-i18n="btnRegister">Créer un compte</button>
+      </div>
+    </div>
+
+    <!-- ================= CONNEXION ================= -->
+    <div class="app-screen" id="screen-auth-connexion">
+      <div class="screen-content">
+        <button class="back-btn mb-3" onclick="showScreen('auth-choix')">←</button>
+        <div class="page-title mb-1" data-i18n="loginTitle">Connexion</div>
+        <p class="text-secondary small mb-4" data-i18n="loginSub">Bon retour parmi nous ! Connecte-toi pour continuer.</p>
+        <form onsubmit="handleLogin(event)">
+          <div class="mb-3">
+            <label class="form-label small fw-bold" data-i18n="emailLabel">Email ou Identifiant</label>
+            <input type="email" class="form-control" id="loginEmail" placeholder="ex: maeva@example.com" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label small fw-bold" data-i18n="passwordLabel">Mot de passe</label>
+            <div class="password-container">
+              <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+              <button type="button" class="toggle-password" onclick="togglePasswordVisibility('loginPassword', this)">👁️</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-cta w-100 border-0 mb-3" data-i18n="btnLogin">Se connecter</button>
+        </form>
+        <div class="text-center mt-3">
+          <span class="small text-secondary" data-i18n="noAccount">Pas encore de compte ? </span>
+          <a href="#" class="small fw-bold text-decoration-none" style="color:var(--vert);" onclick="showScreen('auth-inscription')" data-i18n="registerLink">S'inscrire</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= INSCRIPTION ================= -->
+    <div class="app-screen" id="screen-auth-inscription">
+      <div class="screen-content">
+        <button class="back-btn mb-3" onclick="showScreen('auth-choix')">←</button>
+        <div class="page-title mb-1" data-i18n="registerTitle">Créer un compte</div>
+        <p class="text-secondary small mb-3" data-i18n="registerSub">Rejoins Smart Révision et commence tes entraînements.</p>
+        <form onsubmit="handleRegister(event)">
+          <div class="mb-3">
+            <label class="form-label small fw-bold" data-i18n="nameLabel">Nom complet</label>
+            <input type="text" class="form-control" id="regName" placeholder="ex: Maeva Raynice" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold" data-i18n="emailLabel">Email</label>
+            <input type="email" class="form-control" id="regEmail" placeholder="ex: maeva@example.com" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold" data-i18n="classLabel">Classe / Série</label>
+            <select class="form-control" id="regClass">
+              <option value="Terminale ESF">Terminale ESF</option>
+              <option value="1ère ESF">1ère ESF</option>
+              <option value="Autre technique">Autre technique</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label small fw-bold" data-i18n="passwordLabel">Mot de passe</label>
+            <div class="password-container">
+              <input type="password" class="form-control" id="regPassword" placeholder="1 Maj, 1 Min, 4 Chiffres" required>
+              <button type="button" class="toggle-password" onclick="togglePasswordVisibility('regPassword', this)">👁️</button>
+            </div>
+            <div class="form-text text-muted" style="font-size:0.75rem;" data-i18n="pwdHint">Requis : 1 majuscule, 1 minuscule, et 4 chiffres minimum.</div>
+          </div>
+          <button type="submit" class="btn btn-cta w-100 border-0 mb-3" data-i18n="btnRegister">S'inscrire</button>
+        </form>
+        <div class="text-center mt-2 mb-4">
+          <span class="small text-secondary" data-i18n="hasAccount">Déjà un compte ? </span>
+          <a href="#" class="small fw-bold text-decoration-none" style="color:var(--vert);" onclick="showScreen('auth-connexion')" data-i18n="loginLink">Se connecter</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= ACCUEIL ================= -->
+    <div class="app-screen" id="screen-accueil">
+      <div class="screen-content">
+        <div class="d-flex justify-content-between align-items-center my-2">
+          <div class="d-flex align-items-center gap-2">
+            <svg viewBox="0 0 60 60" width="38" height="38">
+              <polygon points="30,0 33,8 41,8 34,13 37,21 30,16 23,21 26,13 19,8 27,8" fill="#f0a500"/>
+              <path d="M4 40 Q22 24 30 38 L30 22 Q22 12 4 22 Z" fill="#0f4d28"/>
+              <path d="M56 40 Q38 24 30 38 L30 22 Q38 12 56 22 Z" fill="#c8102e"/>
+              <rect x="26" y="24" width="12" height="20" rx="2" fill="#111"/>
+              <rect x="28" y="27" width="8" height="14" rx="1" fill="#c8102e"/>
+            </svg>
+            <div>
+              <div class="fw-bold" style="color:var(--vert); line-height:1.1; font-size:.95rem;">SMART</div>
+              <div class="fw-bold" style="color:var(--vert); line-height:1.1; font-size:.95rem;">RÉVISION CMR</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <div class="profile-pic-container" onclick="openProfileMenu()" title="Changer la photo de profil">
+              <img src="https://via.placeholder.com/150" alt="Profil" class="profile-img" id="globalProfileImg">
+            </div>
+            <div class="position-relative fs-4" style="cursor:pointer;" onclick="openNotificationsModal()">
+              🔔<span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"></span>
+            </div>
+            <div class="fs-4" style="cursor:pointer;" onclick="openMenuModal()">☰</div>
+          </div>
+        </div>
+
+        <div class="card card-custom p-3 mb-3">
+          <div class="d-flex gap-3 align-items-center">
+            <div class="profile-pic-container" onclick="openProfileMenu()">
+              <img src="https://via.placeholder.com/150" alt="Profil" class="rounded-circle border" style="width:56px; height:56px; object-fit:cover;" id="homeProfileImg">
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold" id="userNameDisplay">Bonjour, Maeva ! 👋</div>
+              <div class="text-secondary small mb-2" data-i18n="readyText">Prête à réussir aujourd'hui ?</div>
+              <div class="fw-bold mb-2">Niveau 12</div>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress xp-progress flex-grow-1"><div class="progress-bar" style="width:71%"></div></div>
+                <span class="small fw-semibold text-nowrap"><span id="userXpDisplay">850</span> / 1200 XP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-4"><div class="stat-box"><div class="small fw-semibold mb-2" data-i18n="statLives">Vies</div><div class="fw-bold">❤️❤️ 5/5</div></div></div>
+          <div class="col-4"><div class="stat-box"><div class="small fw-semibold mb-2" data-i18n="statCoins">Pièces</div><div class="fw-bold"><svg viewBox="0 0 24 24" width="18" height="18" style="vertical-align:-3px;"><circle cx="12" cy="12" r="10" fill="#f0a500" stroke="#c9870a" stroke-width="1.5"/><circle cx="12" cy="12" r="7" fill="none" stroke="#fff4d6" stroke-width="1"/><text x="12" y="16" font-size="10" font-weight="800" text-anchor="middle" fill="#fff4d6">F</text></svg> <span id="userCoinsDisplay">245</span></div></div></div>
+          <div class="col-4"><div class="stat-box"><div class="small fw-semibold mb-2" data-i18n="statStreak">Série</div><div class="fw-bold">🔥 7 j</div></div></div>
+        </div>
+
+        <div class="card card-custom p-3 mb-3">
+          <div class="fw-bold mb-2" data-i18n="dailyChallengeTitle">Défi du jour</div>
+          <div class="text-secondary small mb-3" data-i18n="dailyChallengeDesc">Réponds à 10 questions de Puériculture</div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height:9px; border-radius:10px;"><div class="progress-bar bg-success" style="width:0%"></div></div>
+            <span class="small fw-semibold">0/10</span>
+            <span class="small fw-bold px-2 py-1 rounded-pill" style="background:#fdf1cf;">XP 30</span>
+          </div>
+        </div>
+
+        <div class="card card-custom p-3 mb-3" style="cursor:pointer;" onclick="showScreen('chat-ia')">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:1.8rem;">🎓</div>
+            <div class="flex-grow-1">
+              <div class="fw-bold" data-i18n="askTeacherTitle">Poser une question à un prof virtuel</div>
+              <div class="text-secondary small" data-i18n="askTeacherDesc">Un doute sur un cours ? Demande à l'IA !</div>
+            </div>
+            <div class="fs-5 text-secondary">›</div>
+          </div>
+        </div>
+
+        <button class="btn btn-cta w-100 border-0" onclick="openLesson('puericulture')" data-i18n="startReview">Commencer à réviser</button>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn active-nav" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= MATIÈRES ================= -->
+    <div class="app-screen" id="screen-matieres">
+      <div class="screen-content">
+        <button class="back-btn mb-2" onclick="showScreen('accueil')">←</button>
+        <div class="page-title mb-0" data-i18n="navSubjects">Matières</div>
+        <div class="text-secondary small mb-3">Niveau : ESF Terminale</div>
+        <div class="pill-toggle red">
+          <button id="pillGeneral" onclick="toggleMatiere('general')" data-i18n="tabGeneral">Général</button>
+          <button class="active-pill" id="pillPro" onclick="toggleMatiere('pro')" data-i18n="tabPro">Professionnel</button>
+        </div>
+
+        <div id="matieresGeneral" style="display:none;">
+          <div class="subject-row" onclick="openLesson('mathematiques')" style="cursor:pointer">
+            <div class="subject-icon">🧮</div>
+            <div class="flex-grow-1"><div class="subject-name">Mathématiques</div><div class="progress subject-progress"><div class="progress-bar" style="width:60%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('francais')" style="cursor:pointer">
+            <div class="subject-icon">📘</div>
+            <div class="flex-grow-1"><div class="subject-name">Français</div><div class="progress subject-progress"><div class="progress-bar" style="width:40%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('ecm')" style="cursor:pointer">
+            <div class="subject-icon">🏛️</div>
+            <div class="flex-grow-1"><div class="subject-name">ECM</div><div class="progress subject-progress"><div class="progress-bar" style="width:70%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('histoire')" style="cursor:pointer">
+            <div class="subject-icon">📜</div>
+            <div class="flex-grow-1"><div class="subject-name">Histoire</div><div class="progress subject-progress"><div class="progress-bar" style="width:55%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('geographie')" style="cursor:pointer">
+            <div class="subject-icon">🌍</div>
+            <div class="flex-grow-1"><div class="subject-name">Géographie</div><div class="progress subject-progress"><div class="progress-bar" style="width:65%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('philosophie')" style="cursor:pointer">
+            <div class="subject-icon">🧠</div>
+            <div class="flex-grow-1"><div class="subject-name">Philosophie</div><div class="progress subject-progress"><div class="progress-bar" style="width:15%"></div></div></div>
+          </div>
+        </div>
+
+        <div id="matieresPro">
+          <div class="subject-row" onclick="openLesson('puericulture')" style="cursor:pointer">
+            <div class="subject-icon">👶</div>
+            <div class="flex-grow-1"><div class="subject-name">Puériculture</div><div class="progress subject-progress"><div class="progress-bar" style="width:30%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('gerontologie')" style="cursor:pointer">
+            <div class="subject-icon">👵</div>
+            <div class="flex-grow-1"><div class="subject-name">Gérontologie</div><div class="progress subject-progress"><div class="progress-bar" style="width:35%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('dietetique')" style="cursor:pointer">
+            <div class="subject-icon">🍽️</div>
+            <div class="flex-grow-1"><div class="subject-name">Diététique Nutrition</div><div class="progress subject-progress"><div class="progress-bar" style="width:45%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('techniqueculinaire')" style="cursor:pointer">
+            <div class="subject-icon">🍳</div>
+            <div class="flex-grow-1"><div class="subject-name">Technique Culinaire</div><div class="progress subject-progress"><div class="progress-bar" style="width:50%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('educationartistique')" style="cursor:pointer">
+            <div class="subject-icon">🎨</div>
+            <div class="flex-grow-1"><div class="subject-name">Éducation Artistique et Décorative</div><div class="progress subject-progress"><div class="progress-bar" style="width:25%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('sciencesequipements')" style="cursor:pointer">
+            <div class="subject-icon">⚡</div>
+            <div class="flex-grow-1"><div class="subject-name">Sciences des Équipements et du Logement</div><div class="progress subject-progress"><div class="progress-bar" style="width:40%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('amenagementhygiene')" style="cursor:pointer">
+            <div class="subject-icon">🧹</div>
+            <div class="flex-grow-1"><div class="subject-name">Aménagement et Hygiène du Milieu de Vie</div><div class="progress subject-progress"><div class="progress-bar" style="width:35%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('viesociale')" style="cursor:pointer">
+            <div class="subject-icon">🤝</div>
+            <div class="flex-grow-1"><div class="subject-name">Vie Sociale</div><div class="progress subject-progress"><div class="progress-bar" style="width:20%"></div></div></div>
+          </div>
+          <div class="subject-row" onclick="openLesson('economieentreprise')" style="cursor:pointer">
+            <div class="subject-icon">🏢</div>
+            <div class="flex-grow-1"><div class="subject-name">Économie d'Entreprise</div><div class="progress subject-progress"><div class="progress-bar" style="width:20%"></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= LEÇON / COURS COMPLET ================= -->
+    <div class="app-screen" id="screen-lecon">
+      <div class="screen-content">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <button class="back-btn" onclick="showScreen('matieres')">← </button>
+          <button class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3" onclick="speakLesson()" id="audioGuideBtn">🔊 <span data-i18n="audioListen">Écouter la leçon</span></button>
+        </div>
+        <div class="fw-bold mb-1" id="leconTitle" style="font-size:1.1rem; color:var(--vert);">—</div>
+        <div class="text-secondary mb-3" style="font-size:.85rem;" id="leconSubtitle">—</div>
+        
+        <div class="card card-custom p-3 mb-4 bg-white" id="leconContent" style="line-height:1.6; font-size:.95rem;"></div>
+        
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary flex-fill py-3 fw-bold" style="border-radius:12px;" onclick="showScreen('matieres')" data-i18n="backToSubjects">Retour matières</button>
+          <button class="btn btn-cta flex-fill border-0 py-3" onclick="startQuiz()" data-i18n="startQuizBtn">Passer au Quiz 🚀</button>
+        </div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= QUIZ & EXPLICATIONS ================= -->
+    <div class="app-screen" id="screen-quiz">
+      <div class="screen-content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button class="back-btn" onclick="showScreen('lecon')">←</button>
+          <div class="fw-bold" id="quizLives">❤️❤️❤️❤️❤️ 5/5</div>
+        </div>
+        <div class="small text-secondary mb-3"><span data-i18n="scoreLabel">Score</span> : <span id="quizScore">0</span> XP</div>
+        <div class="small text-secondary mb-2" id="quizProgress">Question 1/5</div>
+
+        <div class="fw-bold mb-3" id="quizQuestion" style="font-size:1.05rem;">Chargement...</div>
+        <div id="quizOptions"></div>
+
+        <div class="text-end mb-2" id="quizHintBtnWrap" style="display:none;">
+          <button class="btn btn-sm btn-outline-warning fw-bold rounded-pill" onclick="useHint()" id="quizHintBtn">💡 <span data-i18n="useHint">Indice</span> (<span id="hintCount">0</span>)</button>
+        </div>
+        
+        <!-- Boîte d'explication détaillée -->
+        <div id="quizExplanationBox" class="p-3 mb-3 rounded-3" style="display:none; background:#f0f7f4; border-left:4px solid var(--vert);">
+          <div class="fw-bold small mb-1" style="color:var(--vert);">💡 Explication détaillée :</div>
+          <div class="small text-secondary" id="quizExplanationText"></div>
+        </div>
+
+        <div class="fw-bold my-3" id="quizFeedback" style="min-height:24px;"></div>
+        <button class="btn btn-cta w-100 border-0 mt-2" id="quizNextBtn" style="display:none;" onclick="nextQuestion()" data-i18n="nextQuestion">Question suivante</button>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= FLASHCARDS / CARTES MÉMOIRE ================= -->
+    <div class="app-screen" id="screen-flashcards">
+      <div class="screen-content">
+        <button class="back-btn mb-2" onclick="showScreen('defis')">←</button>
+        <div class="page-title mb-1" data-i18n="flashcardsTitle">🧠 Cartes Mémoire (Flashcards)</div>
+        <p class="text-secondary small mb-4" data-i18n="flashcardsSub">Tape sur la carte pour voir la réponse au dos.</p>
+
+        <div class="flashcard-container" onclick="flipCard()">
+          <div class="flashcard" id="flashcardObj">
+            <div class="flashcard-face">
+              <span class="badge bg-secondary mb-2" id="fcSubject">Puériculture</span>
+              <h5 class="fw-bold" id="fcFrontText" style="color:var(--vert);">Question / Notion</h5>
+              <small class="text-muted mt-3" data-i18n="tapToFlip">👉 Appuyer pour retourner</small>
+            </div>
+            <div class="flashcard-face flashcard-back">
+              <span class="badge bg-success mb-2">Réponse / Définition</span>
+              <h5 class="fw-bold" id="fcBackText">Explication...</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-outline-danger flex-fill py-2 fw-bold" onclick="nextFlashcard(-1)" data-i18n="fcHard">Difficile ❌</button>
+          <button class="btn btn-outline-success flex-fill py-2 fw-bold" onclick="nextFlashcard(1)" data-i18n="fcEasy">Maîtrisé ✅</button>
+        </div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= SIMULATEUR D'EXAMEN / MOYENNE ================= -->
+    <div class="app-screen" id="screen-simulateur">
+      <div class="screen-content">
+        <button class="back-btn mb-2" onclick="showScreen('profil')">←</button>
+        <div class="page-title mb-1" data-i18n="simTitle">📊 Simulateur de Moyenne Probatoire / Bac</div>
+        <p class="text-secondary small mb-3" data-i18n="simSub">Estime tes notes pour vérifier si tu obtiens ton examen.</p>
+
+        <div class="card card-custom p-3 mb-3">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Puériculture (Coeff 4)</label>
+            <input type="number" class="form-control" id="notePuer" placeholder="ex: 14" min="0" max="20" step="0.5">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Technique Culinaire (Coeff 4)</label>
+            <input type="number" class="form-control" id="noteCul" placeholder="ex: 12" min="0" max="20" step="0.5">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Français (Coeff 3)</label>
+            <input type="number" class="form-control" id="noteFr" placeholder="ex: 11" min="0" max="20" step="0.5">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Mathématiques (Coeff 2)</label>
+            <input type="number" class="form-control" id="noteMath" placeholder="ex: 10" min="0" max="20" step="0.5">
+          </div>
+          <button class="btn btn-cta w-100 border-0" onclick="calculerMoyenne()" data-i18n="calcBtn">Calculer ma moyenne</button>
+        </div>
+
+        <div class="card card-custom p-3 text-center bg-white mb-4" id="resultatSimContainer" style="display:none;">
+          <h5 class="fw-bold mb-1" id="moyenneFinaleTxt" style="color:var(--vert);">Moyenne : 0.00 / 20</h5>
+          <p class="small fw-semibold mb-0" id="mentionTxt">Résultat</p>
+        </div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= DÉFIS & EXERCICES ================= -->
+    <div class="app-screen" id="screen-defis">
+      <div class="screen-content">
+        <div class="page-title" data-i18n="navChallenges">Défis & Entraînements</div>
+        
+        <div class="defi-card" onclick="openFlashcards()" style="cursor:pointer; background: linear-gradient(135deg, #fdfcf8 0%, #eafaf0 100%);">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:2.2rem;">🧠</div>
+            <div>
+              <div class="fw-bold mb-1" data-i18n="flashcardsCardTitle">Mode Flashcards (Cartes Mémoire)</div>
+              <div class="text-secondary small" data-i18n="flashcardsCardDesc">Mémorise rapidement les définitions clés.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="defi-card" onclick="showScreen('boutique')" style="cursor:pointer; background: linear-gradient(135deg, #fdfcf8 0%, #fff8e6 100%);">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:2.2rem;">🛍️</div>
+            <div>
+              <div class="fw-bold mb-1" data-i18n="shopCardTitle">Boutique de Pièces</div>
+              <div class="text-secondary small" data-i18n="shopCardDesc">Dépense tes pièces contre des avatars, thèmes et indices.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="defi-card">
+          <div class="fw-bold mb-1" data-i18n="dailyChallengeTitle">🔥 Défi quotidien</div>
+          <div class="text-secondary small mb-3">Réponds à 15 questions dans n'importe quelle matière</div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold">6/15</span>
+            <div class="progress flex-grow-1" style="height:8px; border-radius:10px;"><div class="progress-bar bg-warning" style="width:40%"></div></div>
+            <span class="small fw-bold">XP 50</span>
+          </div>
+        </div>
+
+        <div class="fw-bold mb-2" data-i18n="weeklyChallenges">Défis hebdomadaires</div>
+        <div class="defi-card">
+          <div class="fw-semibold mb-2" data-i18n="challenge1">Révise 5 matières différentes</div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height:8px; border-radius:10px;"><div class="progress-bar" style="width:60%"></div></div>
+            <span class="small fw-bold">XP 100</span>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= CLASSEMENT ================= -->
+    <div class="app-screen" id="screen-classement">
+      <div class="screen-content">
+        <div class="page-title" data-i18n="navLeaderboard">Classement</div>
+        <div class="pill-toggle mb-3">
+          <button class="active-pill" id="pillHebdo" onclick="toggleClassement('hebdo')" data-i18n="tabWeekly">Hebdomadaire</button>
+          <button id="pillGlobal" onclick="toggleClassement('global')" data-i18n="tabGlobal">Global</button>
+        </div>
+
+        <div class="d-flex align-items-center mb-4 p-3 bg-white border rounded shadow-sm">
+            <img src="https://via.placeholder.com/150" alt="Profil" class="profile-img me-3" style="width: 50px; height: 50px;" id="rankingProfileImg">
+            <div>
+                <h5 class="mb-0 fw-bold" id="rankingUserName">Maeva Raynice</h5>
+                <small class="text-muted" data-i18n="currentRank">Classement actuel : 12e</small>
+            </div>
+        </div>
+
+        <div class="rank-row"><div class="rank-medal">🥇</div><div class="rank-avatar">🙂</div><div class="flex-grow-1 fw-semibold">Marie A.</div><div class="fw-bold">1250 pts</div></div>
+        <div class="rank-row"><div class="rank-medal">🥈</div><div class="rank-avatar">🙂</div><div class="flex-grow-1 fw-semibold">Jean B.</div><div class="fw-bold">1180 pts</div></div>
+        <div class="rank-row active bg-light border rounded px-2"><div class="rank-medal">12</div><div class="rank-avatar"><img src="https://via.placeholder.com/150" id="listProfileImg" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div><div class="flex-grow-1 fw-semibold"><span id="listUserName">Maeva Raynice</span> (<span data-i18n="you">Vous</span>)</div><div class="fw-bold"><span id="listUserPts">850</span> pts</div></div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= PROFIL ================= -->
+    <div class="app-screen" id="screen-profil">
+      <div class="screen-content">
+        <div class="page-title" data-i18n="navProfile">Profil</div>
+
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="profile-pic-container" onclick="openProfileMenu()" title="Changer la photo">
+            <img src="https://via.placeholder.com/150" alt="Profil" class="rounded-circle border" style="width:64px; height:64px; object-fit:cover;" id="profileScreenImg">
+          </div>
+          <div>
+            <div class="fw-bold" id="profileNameDisplay">Maeva Raynice</div>
+            <div class="text-secondary small">Niveau 12</div>
+            <div class="text-secondary small"><span id="profileXpDisplay">850</span> / 1200 XP</div>
+          </div>
+        </div>
+        <div class="progress xp-progress mb-3"><div class="progress-bar" style="width:71%"></div></div>
+
+        <div class="profile-list-item" onclick="openBadgesModal()"><span data-i18n="myBadges">⭐ Mes badges</span><span>12 ›</span></div>
+        <div class="profile-list-item" onclick="showScreen('simulateur')"><span data-i18n="simTitleMenu">🧮 Simulateur de Moyenne</span><span>›</span></div>
+        <div class="profile-list-item" onclick="showScreen('stats')"><span data-i18n="statsMenu">📈 Historique & Statistiques</span><span>›</span></div>
+        <div class="profile-list-item" onclick="showScreen('boutique')"><span data-i18n="shopMenu">🛍️ Boutique de Pièces</span><span>›</span></div>
+        <div class="profile-list-item" onclick="showScreen('chat-ia')"><span data-i18n="askTeacherMenu">🎓 Prof virtuel (Chat IA)</span><span>›</span></div>
+        <div class="profile-list-item" onclick="accessAnnales()" style="color:var(--vert);"><span data-i18n="examAnnales">📚 Annales des Examens</span><span id="annalesStatus">🔒 ›</span></div>
+        <div class="profile-list-item" onclick="openPremiumModal()" style="color:var(--or);"><span data-i18n="goPremium">💎 Passer à Premium</span><span>✨ ›</span></div>
+        <div class="profile-list-item" onclick="showScreen('auth-choix')" style="color:var(--rouge);"><span data-i18n="logout">🚪 Se déconnecter</span><span>›</span></div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= CHAT IA / PROF VIRTUEL ================= -->
+    <div class="app-screen" id="screen-chat-ia">
+      <div class="screen-content" style="padding-bottom:0;" id="chatScrollArea">
+        <button class="back-btn mb-2" onclick="showScreen('accueil')">←</button>
+        <div class="page-title mb-1" data-i18n="chatTitle">🎓 Prof Virtuel</div>
+        <p class="text-secondary small mb-3" data-i18n="chatSub">Pose une question sur n'importe quel cours ESF, l'IA t'explique !</p>
+        <div class="chat-window" id="chatWindow"></div>
+        <div class="chat-typing" id="chatTyping" style="display:none;" data-i18n="chatTyping">Le prof réfléchit...</div>
+      </div>
+      <div class="chat-input-bar">
+        <input type="text" id="chatInput" placeholder="Écris ta question ici..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+        <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= BOUTIQUE DE PIÈCES ================= -->
+    <div class="app-screen" id="screen-boutique">
+      <div class="screen-content">
+        <button class="back-btn mb-2" onclick="showScreen('defis')">←</button>
+        <div class="page-title mb-1" data-i18n="shopTitle">🛍️ Boutique de Pièces</div>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <p class="text-secondary small mb-0" data-i18n="shopSub">Utilise tes pièces gagnées en quiz.</p>
+          <span class="fw-bold px-3 py-1 rounded-pill" style="background:#fdf1cf;">
+            <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10" fill="#f0a500" stroke="#c9870a" stroke-width="1.5"/><circle cx="12" cy="12" r="7" fill="none" stroke="#fff4d6" stroke-width="1"/><text x="12" y="16" font-size="10" font-weight="800" text-anchor="middle" fill="#fff4d6">F</text></svg>
+            <span id="shopCoinsDisplay">245</span>
+          </span>
+        </div>
+
+        <div class="fw-bold small text-secondary mb-2" data-i18n="shopAvatars">AVATARS</div>
+        <div id="shopAvatarsList"></div>
+
+        <div class="fw-bold small text-secondary mb-2 mt-3" data-i18n="shopThemes">THÈMES DE COULEUR</div>
+        <div id="shopThemesList"></div>
+
+        <div class="fw-bold small text-secondary mb-2 mt-3" data-i18n="shopHints">INDICES QUIZ</div>
+        <div id="shopHintsList"></div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+    <!-- ================= HISTORIQUE & STATISTIQUES ================= -->
+    <div class="app-screen" id="screen-stats">
+      <div class="screen-content">
+        <button class="back-btn mb-2" onclick="showScreen('profil')">←</button>
+        <div class="page-title mb-1" data-i18n="statsTitle">📈 Historique & Statistiques</div>
+        <p class="text-secondary small mb-3" data-i18n="statsSub">Suis ton temps de révision et ton taux de réussite.</p>
+
+        <div class="stat-mini-card">
+          <div class="fw-bold small mb-2" data-i18n="statsTimeTitle">⏱️ Temps de révision (7 derniers jours)</div>
+          <canvas id="timeChart" height="140"></canvas>
+        </div>
+
+        <div class="stat-mini-card">
+          <div class="fw-bold small mb-2" data-i18n="statsSuccessTitle">✅ Taux de réussite par matière</div>
+          <div id="successBySubject"></div>
+          <div class="text-secondary small text-center mt-2" id="statsEmptyMsg" style="display:none;" data-i18n="statsEmpty">Réponds à des quiz pour voir tes statistiques ici !</div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-around bottom-nav">
+        <button class="nav-btn" onclick="showScreen('accueil')"><span class="icon">🏠</span><span data-i18n="navHome">Accueil</span></button>
+        <button class="nav-btn" onclick="showScreen('matieres')"><span class="icon">📖</span><span data-i18n="navSubjects">Matières</span></button>
+        <button class="nav-btn" onclick="showScreen('defis')"><span class="icon">🏆</span><span data-i18n="navChallenges">Défis</span></button>
+        <button class="nav-btn" onclick="showScreen('classement')"><span class="icon">📊</span><span data-i18n="navLeaderboard">Classement</span></button>
+        <button class="nav-btn active-nav" onclick="showScreen('profil')"><span class="icon">👤</span><span data-i18n="navProfile">Profil</span></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= MODALES ================= -->
+
+<div id="profileOverlay" onclick="closeProfileMenu()"></div>
+<div id="profileMenu">
+    <h5 class="mb-3 fw-bold" style="color:var(--vert)" data-i18n="profileOptions">Option du Profil</h5>
+    <button class="btn btn-outline-primary w-100 mb-2" onclick="viewProfilePhoto()"><i class="bi bi-eye"></i> <span data-i18n="viewPhoto">Voir la photo de profil</span></button>
+    <button class="btn btn-success w-100 mb-2" onclick="triggerGalleryImport()" style="background:var(--vert); border:none;"><i class="bi bi-image"></i> <span data-i18n="importGallery">Importer depuis la galerie</span></button>
+    <button class="btn btn-light w-100 text-muted" onclick="closeProfileMenu()" data-i18n="close">Fermer</button>
+</div>
+<input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+
+<div class="modal fade" id="badgesModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-bold" data-i18n="myBadgesModal">⭐ Mes Badges (12)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 text-center">
+          <div class="col-4"><div class="p-3 border rounded-3 bg-light"><div style="font-size:2rem;">🔥</div><div class="small fw-bold mt-1">7 Jours</div></div></div>
+          <div class="col-4"><div class="p-3 border rounded-3 bg-light"><div style="font-size:2rem;">👶</div><div class="small fw-bold mt-1">Puériculture</div></div></div>
+          <div class="col-4"><div class="p-3 border rounded-3 bg-light"><div style="font-size:2rem;">🧮</div><div class="small fw-bold mt-1">Maths</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="annalesModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-bold text-success"><i class="bi bi-journal-check"></i> <span data-i18n="examAnnales">Annales des Examens</span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small" data-i18n="annalesDesc">Accédez aux sujets corrigés et aux épreuves des sessions précédentes (Terminale ESF).</p>
+        <div class="list-group mb-3">
+            <a href="#" class="list-group-item list-group-item-action">Session 2025 - Philosophie ESF</a>
+            <a href="#" class="list-group-item list-group-item-action">Session 2024 - Économie Sociale et Familiale</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="annalesLockedModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-bold text-danger"><i class="bi bi-lock-fill"></i> <span data-i18n="lockedTitle">Accès restreint</span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div style="font-size: 3rem;" class="mb-2">🔒</div>
+        <p class="text-secondary small mb-4" data-i18n="lockedMsg">Les annales des examens sont bloquées. Tu dois effectuer le paiement Premium pour y accéder !</p>
+        <button class="btn btn-cta w-100 border-0" onclick="closeLockedAndOpenPremium()" data-i18n="unlockNow">Débloquer avec Premium (2 500 FCFA)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="premiumModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-bold" style="color:var(--vert);" data-i18n="premiumTitle">💎 Smart Révision Premium</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary small" data-i18n="premiumDesc">Accède à tous les quiz illimités et débloque les annales officielles.</p>
+        <form onsubmit="handlePremiumPayment(event)">
+          <div class="mb-3">
+            <label class="form-label small fw-bold" data-i18n="operator">Opérateur</label>
+            <select class="form-control" id="operatorSelect">
+              <option value="Orange Money">Orange Money Cameroun</option>
+              <option value="MTN Momo">MTN Mobile Money Cameroun</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold" data-i18n="phoneLabel">Numéro de téléphone</label>
+            <input type="tel" class="form-control" id="momoNumber" value="659276790" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label small fw-bold" data-i18n="pinLabel">Code PIN de confirmation</label>
+            <div class="password-container">
+              <input type="password" class="form-control" id="premiumPassword" placeholder="••••" required>
+              <button type="button" class="toggle-password" onclick="togglePasswordVisibility('premiumPassword', this)">👁️</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-cta w-100 border-0" data-i18n="payBtn">Valider le paiement (2 500 FCFA)</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="notificationsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-bold" style="color:var(--vert);" data-i18n="notifTitle">🔔 Notifications</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group list-group-flush">
+          <div class="list-group-item px-0 py-2 border-bottom">
+            <div class="fw-bold small" data-i18n="notif1Title">🔥 Rappel de série</div>
+            <p class="text-secondary small mb-0" data-i18n="notif1Desc">N'oublie pas ton défi du jour pour garder ta série !</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="menuModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-bold" style="color:var(--vert);">☰ Menu Rapide</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group list-group-flush mb-2">
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" onclick="menuNavigate('accueil')">🏠 <span data-i18n="navHome">Accueil</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" onclick="menuNavigate('matieres')">📖 <span data-i18n="navSubjects">Matières ESF</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" onclick="menuNavigate('defis')">🏆 <span data-i18n="navChallenges">Défis & Flashcards</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" onclick="menuNavigate('classement')">📊 <span data-i18n="navLeaderboard">Classement</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" onclick="menuNavigate('profil')">👤 <span data-i18n="navProfile">Mon Profil</span></button>
+        </div>
+
+        <div class="rounded-3 p-2 mb-2" style="background:#f0f7f4; border:1px solid #d7ecdf;">
+          <div class="small fw-bold px-2 mb-1" style="color:var(--vert);" data-i18n="newFeatures">✨ NOUVEAU</div>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" style="background:transparent;" onclick="menuNavigate('chat-ia')">🎓 <span data-i18n="askTeacherMenu">Prof virtuel (Chat IA)</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" style="background:transparent;" onclick="menuNavigate('boutique')">🛍️ <span data-i18n="shopMenu">Boutique de Pièces</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" style="background:transparent;" onclick="menuNavigate('stats')">📈 <span data-i18n="statsMenu">Historique & Statistiques</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2" style="background:transparent;" onclick="installPWA()">📲 <span data-i18n="installApp">Installer l'application</span></button>
+        </div>
+
+        <div class="list-group list-group-flush mb-3">
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2 text-success" onclick="closeMenuAndAccessAnnales()">📚 <span data-i18n="examAnnales">Annales des Examens</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2 text-warning" onclick="closeMenuAndOpenModal('premiumModal')">💎 <span data-i18n="goPremium">Devenir Premium</span></button>
+          <button class="list-group-item list-group-item-action border-0 fw-semibold py-2 text-danger" onclick="menuNavigate('auth-choix')">🚪 <span data-i18n="logout">Se déconnecter</span></button>
+        </div>
+
+        <div class="text-center border-top pt-3">
+          <div class="small fw-bold text-secondary mb-2" data-i18n="selectLanguage">Langue / Language</div>
+          <div class="lang-switch-container">
+            <button class="lang-btn active-lang" id="langBtnFr" onclick="setLanguage('fr')">FR (Français)</button>
+            <button class="lang-btn" id="langBtnEn" onclick="setLanguage('en')">EN (English)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const translations = {
+    fr: {
+      splashRibbon: "LE SUCCÈS AU BOUT DES DOIGTS",
+      loading: "Chargement...",
+      welcomeTitle: "Bienvenue !",
+      welcomeSub: "Révise tes cours, progresse et réussis tes examens au Cameroun.",
+      btnLogin: "Se connecter",
+      btnRegister: "Créer un compte",
+      loginTitle: "Connexion",
+      loginSub: "Bon retour parmi nous ! Connecte-toi pour continuer.",
+      emailLabel: "Email ou Identifiant",
+      passwordLabel: "Mot de passe",
+      noAccount: "Pas encore de compte ? ",
+      registerLink: "S'inscrire",
+      registerTitle: "Créer un compte",
+      registerSub: "Rejoins Smart Révision et commence tes entraînements.",
+      nameLabel: "Nom complet",
+      classLabel: "Classe / Série",
+      pwdHint: "Requis : 1 majuscule, 1 minuscule et 4 chiffres minimum.",
+      hasAccount: "Déjà un compte ? ",
+      readyText: "Prête à réussir aujourd'hui ?",
+      statLives: "Vies",
+      statCoins: "Pièces",
+      statStreak: "Série",
+      dailyChallengeTitle: "Défi du jour",
+      dailyChallengeDesc: "Réponds à 10 questions de Puériculture",
+      startReview: "Commencer à réviser",
+      navHome: "Accueil",
+      navSubjects: "Matières",
+      navChallenges: "Défis",
+      navLeaderboard: "Classement",
+      navProfile: "Profil",
+      tabGeneral: "Général",
+      tabPro: "Professionnel",
+      backToSubjects: "Retour matières",
+      startQuizBtn: "Passer au Quiz 🚀",
+      scoreLabel: "Score",
+      nextQuestion: "Question suivante",
+      weeklyChallenges: "Défis hebdomadaires",
+      challenge1: "Révise 5 matières différentes",
+      tabWeekly: "Hebdomadaire",
+      tabGlobal: "Global",
+      currentRank: "Classement actuel : 12e",
+      you: "Vous",
+      myBadges: "⭐ Mes badges",
+      simTitleMenu: "🧮 Simulateur de Moyenne",
+      examAnnales: "📚 Annales des Examens",
+      goPremium: "💎 Passer à Premium",
+      logout: "🚪 Se déconnecter",
+      profileOptions: "Option du Profil",
+      viewPhoto: "Voir la photo de profil",
+      importGallery: "Importer depuis la galerie",
+      close: "Fermer",
+      myBadgesModal: "⭐ Mes Badges (12)",
+      annalesDesc: "Accédez aux sujets corrigés et aux épreuves des sessions précédentes (Terminale ESF).",
+      lockedTitle: "Accès restreint",
+      lockedMsg: "Les annales des examens sont bloquées tant que le paiement du Premium n'est pas effectué !",
+      unlockNow: "Débloquer avec Premium (2 500 FCFA)",
+      premiumTitle: "💎 Smart Révision Premium",
+      premiumDesc: "Accède à tous les quiz illimités et débloque les annales.",
+      operator: "Opérateur",
+      phoneLabel: "Numéro de téléphone",
+      pinLabel: "Code PIN de confirmation",
+      payBtn: "Valider le paiement (2 500 FCFA)",
+      notifTitle: "🔔 Notifications",
+      notif1Title: "🔥 Rappel de série",
+      notif1Desc: "N'oublie pas ton défi du jour pour garder ta série !",
+      selectLanguage: "Langue / Language",
+      audioListen: "Écouter la leçon",
+      flashcardsTitle: "🧠 Cartes Mémoire (Flashcards)",
+      flashcardsSub: "Tape sur la carte pour voir la réponse au dos.",
+      tapToFlip: "👉 Appuyer pour retourner",
+      fcHard: "Difficile ❌",
+      fcEasy: "Maîtrisé ✅",
+      flashcardsCardTitle: "Mode Flashcards",
+      flashcardsCardDesc: "Mémorise rapidement les définitions clés.",
+      simTitle: "📊 Simulateur de Moyenne Probatoire / Bac",
+      simSub: "Estime tes notes pour vérifier si tu obtiens ton examen.",
+      calcBtn: "Calculer ma moyenne",
+      askTeacherTitle: "Poser une question à un prof virtuel",
+      askTeacherDesc: "Un doute sur un cours ? Demande à l'IA !",
+      askTeacherMenu: "Prof virtuel (Chat IA)",
+      chatTitle: "🎓 Prof Virtuel",
+      chatSub: "Pose une question sur n'importe quel cours ESF, l'IA t'explique !",
+      chatTyping: "Le prof réfléchit...",
+      shopCardTitle: "Boutique de Pièces",
+      shopCardDesc: "Dépense tes pièces contre des avatars, thèmes et indices.",
+      shopMenu: "Boutique de Pièces",
+      shopTitle: "🛍️ Boutique de Pièces",
+      shopSub: "Utilise tes pièces gagnées en quiz.",
+      shopAvatars: "AVATARS",
+      shopThemes: "THÈMES DE COULEUR",
+      shopHints: "INDICES QUIZ",
+      statsMenu: "Historique & Statistiques",
+      statsTitle: "📈 Historique & Statistiques",
+      statsSub: "Suis ton temps de révision et ton taux de réussite.",
+      statsTimeTitle: "⏱️ Temps de révision (7 derniers jours)",
+      statsSuccessTitle: "✅ Taux de réussite par matière",
+      statsEmpty: "Réponds à des quiz pour voir tes statistiques ici !",
+      useHint: "Indice",
+      newFeatures: "✨ NOUVEAU",
+      installApp: "Installer l'application"
+    },
+    en: {
+      splashRibbon: "SUCCESS AT YOUR FINGERTIPS",
+      loading: "Loading...",
+      welcomeTitle: "Welcome!",
+      welcomeSub: "Revise your lessons, progress and pass your exams in Cameroon.",
+      btnLogin: "Log In",
+      btnRegister: "Create Account",
+      loginTitle: "Log In",
+      loginSub: "Welcome back! Log in to continue.",
+      emailLabel: "Email or Username",
+      passwordLabel: "Password",
+      noAccount: "Don't have an account? ",
+      registerLink: "Sign Up",
+      registerTitle: "Create Account",
+      registerSub: "Join Smart Révision and start practicing.",
+      nameLabel: "Full Name",
+      classLabel: "Class / Stream",
+      pwdHint: "Required: 1 uppercase, 1 lowercase and at least 4 digits.",
+      hasAccount: "Already have an account? ",
+      readyText: "Ready to succeed today?",
+      statLives: "Lives",
+      statCoins: "Coins",
+      statStreak: "Streak",
+      dailyChallengeTitle: "Daily Challenge",
+      dailyChallengeDesc: "Answer 10 Childcare questions",
+      startReview: "Start Revising",
+      navHome: "Home",
+      navSubjects: "Subjects",
+      navChallenges: "Challenges",
+      navLeaderboard: "Leaderboard",
+      navProfile: "Profile",
+      tabGeneral: "General",
+      tabPro: "Professional",
+      backToSubjects: "Back to subjects",
+      startQuizBtn: "Take Quiz 🚀",
+      scoreLabel: "Score",
+      nextQuestion: "Next Question",
+      weeklyChallenges: "Weekly Challenges",
+      challenge1: "Revise 5 different subjects",
+      tabWeekly: "Weekly",
+      tabGlobal: "Global",
+      currentRank: "Current Rank: 12th",
+      you: "You",
+      myBadges: "⭐ My Badges",
+      simTitleMenu: "🧮 Grade Simulator",
+      examAnnales: "📚 Exam Past Papers",
+      goPremium: "💎 Go Premium",
+      logout: "🚪 Log Out",
+      profileOptions: "Profile Options",
+      viewPhoto: "View profile photo",
+      importGallery: "Import from gallery",
+      close: "Close",
+      myBadgesModal: "⭐ My Badges (12)",
+      annalesDesc: "Access corrected subjects and past exams from previous sessions.",
+      lockedTitle: "Restricted Access",
+      lockedMsg: "Exam past papers are locked until Premium payment is completed!",
+      unlockNow: "Unlock with Premium (2,500 XAF)",
+      premiumTitle: "💎 Smart Révision Premium",
+      premiumDesc: "Access all unlimited quizzes and unlock past papers.",
+      operator: "Operator",
+      phoneLabel: "Phone Number",
+      pinLabel: "Confirmation PIN code",
+      payBtn: "Confirm Payment (2,500 XAF)",
+      notifTitle: "🔔 Notifications",
+      notif1Title: "🔥 Streak Reminder",
+      notif1Desc: "Don't forget your daily challenge to keep your streak!",
+      selectLanguage: "Language / Langue",
+      audioListen: "Listen to lesson",
+      flashcardsTitle: "🧠 Flashcards",
+      flashcardsSub: "Tap card to reveal answer on the back.",
+      tapToFlip: "👉 Tap to flip",
+      fcHard: "Hard ❌",
+      fcEasy: "Mastered ✅",
+      flashcardsCardTitle: "Flashcards Mode",
+      flashcardsCardDesc: "Memorize key definitions quickly.",
+      simTitle: "📊 Average Grade Simulator",
+      simSub: "Estimate your grades to check if you pass your exam.",
+      calcBtn: "Calculate Average",
+      askTeacherTitle: "Ask a virtual teacher",
+      askTeacherDesc: "A doubt about a lesson? Ask the AI!",
+      askTeacherMenu: "Virtual Teacher (AI Chat)",
+      chatTitle: "🎓 Virtual Teacher",
+      chatSub: "Ask a question about any ESF lesson, the AI explains!",
+      chatTyping: "Teacher is thinking...",
+      shopCardTitle: "Coin Shop",
+      shopCardDesc: "Spend your coins on avatars, themes and hints.",
+      shopMenu: "Coin Shop",
+      shopTitle: "🛍️ Coin Shop",
+      shopSub: "Use the coins you earned in quizzes.",
+      shopAvatars: "AVATARS",
+      shopThemes: "COLOR THEMES",
+      shopHints: "QUIZ HINTS",
+      statsMenu: "History & Statistics",
+      statsTitle: "📈 History & Statistics",
+      statsSub: "Track your revision time and success rate.",
+      statsTimeTitle: "⏱️ Revision time (last 7 days)",
+      statsSuccessTitle: "✅ Success rate by subject",
+      statsEmpty: "Answer quizzes to see your stats here!",
+      useHint: "Hint",
+      newFeatures: "✨ NEW",
+      installApp: "Install the app"
+    }
+  };
+
+  let currentLang = 'fr';
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    document.getElementById('langBtnFr').classList.toggle('active-lang', lang === 'fr');
+    document.getElementById('langBtnEn').classList.toggle('active-lang', lang === 'en');
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (translations[lang][key]) {
+        el.textContent = translations[lang][key];
+      }
+    });
+  }
+
+  function getDatabaseUsers() {
+    const users = localStorage.getItem('smart_revision_users');
+    return users ? JSON.parse(users) : [];
+  }
+
+  function saveDatabaseUser(userObj) {
+    const users = getDatabaseUsers();
+    users.push(userObj);
+    localStorage.setItem('smart_revision_users', JSON.stringify(users));
+  }
+
+  let isPremiumPaid = false;
+  let currentUserXp = 850;
+  let currentUserCoins = 245;
+
+  const fill = document.getElementById('progressFill');
+  const pct = document.getElementById('progressPct');
+  const splash = document.getElementById('splash');
+
+  fill.style.width = '65%';
+  pct.textContent = '65 %';
+
+  setTimeout(()=>{
+    fill.style.transition = 'width 1.2s linear';
+    fill.style.width = '100%';
+    let v = 65;
+    const interval = setInterval(()=>{
+      v++;
+      pct.textContent = v + ' %';
+      if (v >= 100){ clearInterval(interval); }
+    }, 12);
+  }, 600);
+
+  setTimeout(()=>{
+    splash.style.display = 'none';
+    showScreen('auth-choix');
+  }, 2200);
+
+  function togglePasswordVisibility(fieldId, btn){
+    const field = document.getElementById(fieldId);
+    if(field.type === 'password'){
+      field.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      field.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+
+  function openBadgesModal(){ new bootstrap.Modal(document.getElementById('badgesModal')).show(); }
+  
+  function accessAnnales() {
+    if (isPremiumPaid) {
+      new bootstrap.Modal(document.getElementById('annalesModal')).show();
+    } else {
+      new bootstrap.Modal(document.getElementById('annalesLockedModal')).show();
+    }
+  }
+
+  function closeMenuAndAccessAnnales() {
+    bootstrap.Modal.getInstance(document.getElementById('menuModal')).hide();
+    accessAnnales();
+  }
+
+  function closeLockedAndOpenPremium() {
+    bootstrap.Modal.getInstance(document.getElementById('annalesLockedModal')).hide();
+    openPremiumModal();
+  }
+
+  function openPremiumModal(){ new bootstrap.Modal(document.getElementById('premiumModal')).show(); }
+  function openNotificationsModal(){ new bootstrap.Modal(document.getElementById('notificationsModal')).show(); }
+  function openMenuModal(){ new bootstrap.Modal(document.getElementById('menuModal')).show(); }
+
+  function menuNavigate(screenName){
+    bootstrap.Modal.getInstance(document.getElementById('menuModal')).hide();
+    showScreen(screenName);
+  }
+
+  function closeMenuAndOpenModal(modalId){
+    bootstrap.Modal.getInstance(document.getElementById('menuModal')).hide();
+    new bootstrap.Modal(document.getElementById(modalId)).show();
+  }
+
+  function handlePremiumPayment(e){
+    e.preventDefault();
+    isPremiumPaid = true;
+    document.getElementById('annalesStatus').textContent = '✓';
+    alert(currentLang === 'fr' ? "Paiement validé avec succès ! Les annales des examens sont maintenant débloquées 🎉" : "Payment successful! Exam past papers are now unlocked 🎉");
+    bootstrap.Modal.getInstance(document.getElementById('premiumModal')).hide();
+    new bootstrap.Modal(document.getElementById('annalesModal')).show();
+  }
+
+  async function handleRegister(e){
+    e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const password = document.getElementById('regPassword').value;
+    const userClass = document.getElementById('regClass').value;
+
+    const hasLower = /[a-z]/.test(password);
+    const hasUpper = /[A-Z]/.test(password);
+    const digitsMatch = password.match(/\d/g);
+    const hasFourDigits = digitsMatch && digitsMatch.length >= 4;
+
+    if (!hasLower || !hasUpper || !hasFourDigits) {
+      alert(currentLang === 'fr' 
+        ? "Le mot de passe doit contenir au moins 1 minuscule, 1 majuscule et 4 chiffres !" 
+        : "Password must contain at least 1 lowercase, 1 uppercase, and 4 digits!");
+      return;
+    }
+
+    const { data, error } = await sbClient.auth.signUp({ email, password });
+
+    if (error) {
+      alert("Erreur : " + error.message);
+      return;
+    }
+
+    await sbClient.from('profils').insert({
+      id: data.user.id,
+      nom_complet: name,
+      classe: userClass
+    });
+
+    updateUserUI(name, 850, 245);
+    alert(currentLang === 'fr' ? "Compte créé et sauvegardé avec succès !" : "Account successfully created!");
+    showScreen('accueil');
+  }
+
+  async function handleLogin(e){
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+
+    const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      alert(currentLang === 'fr' ? "Identifiants incorrects." : "Invalid credentials.");
+      return;
+    }
+
+    const { data: profil } = await sbClient.from('profils').select('nom_complet').eq('id', data.user.id).single();
+    const name = profil ? profil.nom_complet : email;
+    updateUserUI(name, 850, 245);
+    showScreen('accueil');
+  }
+
+  function updateUserUI(name, xp, coins){
+    const firstName = name.split(' ')[0];
+    document.getElementById('userNameDisplay').textContent = (currentLang === 'fr' ? `Bonjour, ${firstName} ! 👋` : `Hello, ${firstName}! 👋`);
+    document.getElementById('profileNameDisplay').textContent = name;
+    document.getElementById('rankingUserName').textContent = name;
+    document.getElementById('listUserName').textContent = name;
+    document.getElementById('userXpDisplay').textContent = xp;
+    document.getElementById('profileXpDisplay').textContent = xp;
+    document.getElementById('userCoinsDisplay').textContent = coins;
+    document.getElementById('listUserPts').textContent = xp;
+    updateShopCoinsDisplay();
+  }
+
+  function openProfileMenu() {
+      document.getElementById('profileOverlay').style.display = 'block';
+      document.getElementById('profileMenu').style.display = 'block';
+  }
+
+  function closeProfileMenu() {
+      document.getElementById('profileOverlay').style.display = 'none';
+      document.getElementById('profileMenu').style.display = 'none';
+  }
+
+  function viewProfilePhoto() {
+      closeProfileMenu();
+      window.open(document.getElementById('globalProfileImg').src, '_blank');
+  }
+
+  function triggerGalleryImport() {
+      closeProfileMenu();
+      document.getElementById('galleryInput').click();
+  }
+
+  function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              const url = e.target.result;
+              ['globalProfileImg', 'homeProfileImg', 'profileScreenImg', 'rankingProfileImg', 'listProfileImg'].forEach(id => {
+                  const el = document.getElementById(id);
+                  if(el.tagName === 'IMG') el.src = url;
+              });
+          }
+          reader.readAsDataURL(file);
+      }
+  }
+
+  /* ---- LEÇONS & COURS COMPLETS ---- */
+  const lessonsData = {
+    puericulture: {
+      name: "Puériculture — Terminale ESF",
+      subtitle: "Chapitre 1 : Le développement du jeune enfant et l'alimentation",
+      html: `
+        <h6 class="fw-bold text-success mb-2">1. Croissance et développement psychomoteur</h6>
+        <p>Le développement de l'enfant de 0 à 3 ans obéit à deux lois fondamentales :</p>
+        <ul>
+          <li><strong>La loi céphalo-caudale :</strong> le contrôle musculaire progresse de la tête vers les pieds (l'enfant tient sa tête avant de s'asseoir, puis de marcher).</li>
+          <li><strong>La loi proximo-distale :</strong> le contrôle progresse du centre du corps vers les extrémités (les bras avant les mains et les doigts).</li>
+        </ul>
+        <h6 class="fw-bold text-success mb-2 mt-3">2. L'alimentation du nourrisson</h6>
+        <p>L'allaitement maternel exclusif est recommandé jusqu'à 6 mois. La diversification alimentaire s'introduit progressivement entre 4 et 6 mois pour couvrir les besoins nutritionnels croissants.</p>
+      `,
+      quiz: [
+        { 
+          question: "La loi de développement psychomoteur qui va de la tête vers les pieds s'appelle :", 
+          options: [
+            { letter:'A', text:"La loi proximo-distale" },
+            { letter:'B', text:"La loi céphalo-caudale", correct:true },
+            { letter:'C', text:"La loi motrice" },
+            { letter:'D', text:"La loi de croissance" }
+          ], 
+          explanation: "La loi céphalo-caudale signifie que l'enfant maîtrise d'abord le haut de son corps (tête, tronc) avant le bas (jambes, marche).",
+          xp:20 
+        },
+        { 
+          question: "À partir de quel âge commence généralement la diversification alimentaire ?", 
+          options: [
+            { letter:'A', text:"1 mois" },
+            { letter:'B', text:"Entre 4 et 6 mois", correct:true },
+            { letter:'C', text:"1 an" },
+            { letter:'D', text:"2 ans" }
+          ], 
+          explanation: "Entre 4 et 6 mois, le système digestif du nourrisson est suffisamment mature pour découvrir de nouveaux aliments en plus du lait.",
+          xp:20 
+        }
+      ]
+    },
+    gerontologie: {
+      name: "Gérontologie",
+      subtitle: "Chapitre 1 : Le vieillissement démographique et biologique",
+      html: `
+        <h6 class="fw-bold text-success mb-2">1. Définitions et enjeux</h6>
+        <p>La gérontologie étudie le vieillissement sous tous ses aspects (biologique, psychologique, social). La gériatrie est la branche médicale dédiée aux pathologies de la personne âgée.</p>
+        <h6 class="fw-bold text-success mb-2 mt-3">2. Les besoins spécifiques</h6>
+        <p>Prévention de la dépendance, maintien de l'autonomie à domicile, adaptation de l'habitat et prévention de la dénutrition et de la déshydratation.</p>
+      `,
+      quiz: [
+        { question: "La science qui étudie le vieillissement s'appelle :", options: [{ letter:'A', text:"La gérontologie", correct:true }, { letter:'B', text:"La pédiatrie" }, { letter:'C', text:"La sociologie" }], explanation: "La gérontologie englobe l'étude globale du vieillissement humain.", xp:20 }
+      ]
+    },
+    dietetique: {
+      name: "Diététique Nutrition",
+      subtitle: "Chapitre 1 : Les macronutriments et micronutriments",
+      html: `
+        <h6 class="fw-bold text-success mb-2">1. Les macronutriments</h6>
+        <p>Ils fournissent l'énergie : les glucides (sucres), les lipides (graisses) et les protides (protéines, rôle bâtisseur).</p>
+      `,
+      quiz: [
+        { question: "Quel nutriment a principalement un rôle bâtisseur (construction des tissus) ?", options: [{ letter:'A', text:"Les protéines", correct:true }, { letter:'B', text:"Les lipides" }], explanation: "Les protides/protéines sont indispensables à la construction et à la régénération des cellules du corps.", xp:20 }
+      ]
+    },
+    techniqueculinaire: {
+      name: "Technique Culinaire",
+      subtitle: "Chapitre 1 : Règles d'hygiène et marche en avant",
+      html: `
+        <h6 class="fw-bold text-success mb-2">1. Le principe de la marche en avant</h6>
+        <p>En cuisine professionnelle, les produits sales ne doivent jamais croiser les produits propres afin d'éviter toute contamination croisée (toxinfections alimentaires).</p>
+      `,
+      quiz: [
+        { question: "Le principe qui évite que les produits sales croisent les produits propres s'appelle :", options: [{ letter:'A', text:"La marche en avant", correct:true }, { letter:'B', text:"Le stockage croisé" }], explanation: "La marche en avant garantit le respect strict de la chaîne d'hygiène alimentaire.", xp:20 }
+      ]
+    },
+    educationartistique: { name: "Éducation Artistique", subtitle: "Harmonie des couleurs", html: `<p>Étude des couleurs primaires, secondaires et de l'harmonie décorative pour l'aménagement d'intérieur.</p>`, quiz: [{ question: "Quelles sont les trois couleurs primaires ?", options: [{ letter:'A', text:"Bleu, Rouge, Jaune", correct:true }], explanation: "Ce sont les teintes de base irréductibles.", xp:20 }] },
+    sciencesequipements: { name: "Sciences des Équipements", subtitle: "Installations électriques domestiques", html: `<p>Rôle du disjoncteur différentiel : couper le courant en cas de fuite de courant vers la terre pour protéger l'utilisateur.</p>`, quiz: [{ question: "Quel appareil protège contre les électrocutions ?", options: [{ letter:'A', text:"Le disjoncteur différentiel", correct:true }], explanation: "Il détecte la moindre différence de courant.", xp:20 }] },
+    amenagementhygiene: { name: "Aménagement et Hygiène", subtitle: "L'entretien des locaux", html: `<p>Les 4 étapes du bionettoyage : détergence, rinçage, désinfection, rinçage final.</p>`, quiz: [{ question: "Quelle est la première étape du bionettoyage ?", options: [{ letter:'A', text:"La détergence (nettoyage)", correct:true }], explanation: "Il faut d'abord enlever les salissures visibles avant de désinfecter.", xp:20 }] },
+    francais: { name: "Français", subtitle: "La contraction de texte", html: `<p>Résumer un texte argumentatif en respectant scrupuleusement le volume demandé (généralement au quart près).</p>`, quiz: [{ question: "Dans une contraction de texte, a-t-on le droit d'ajouter son avis personnel ?", options: [{ letter:'A', text:"Non, c'interdit", correct:true }], explanation: "Il faut restituer la pensée de l'auteur sans donner son propre jugement.", xp:20 }] },
+    mathematiques: { name: "Mathématiques", subtitle: "Les suites numériques", html: `<p>Étude des suites arithmétiques ($u_{n+1} = u_n + r$) et géométriques ($u_{n+1} = u_n \\times q$).</p>`, quiz: [{ question: "Dans une suite arithmétique de raison 3, si $u_0 = 2$, que vaut $u_1$ ?", options: [{ letter:'A', text:"5", correct:true }], explanation: "$u_1 = u_0 + r = 2 + 3 = 5$.", xp:20 }] },
+    ecm: { name: "ECM", subtitle: "Les institutions de la République", html: `<p>Rôle de l'Assemblée Nationale et du pouvoir exécutif au Cameroun.</p>`, quiz: [{ question: "Qui vote les lois au Cameroun ?", options: [{ letter:'A', text:"L'Assemblée Nationale", correct:true }], explanation: "Le pouvoir législatif appartient au Parlement.", xp:20 }] },
+    histoire: { name: "Histoire", subtitle: "La décolonisation en Afrique", html: `<p>Les mouvements d'indépendance des années 1960 en Afrique francophone.</p>`, quiz: [{ question: "En quelle année le Cameroun a-t-il accédé à l'indépendance ?", options: [{ letter:'A', text:"1960", correct:true }], explanation: "Le Cameroun est indépendant le 1er janvier 1960.", xp:20 }] },
+    geographie: { name: "Géographie", subtitle: "L'économie du Cameroun", html: `<p>Les atouts économiques du Cameroun : agriculture, hydrocarbures, et position stratégique en Afrique centrale.</p>`, quiz: [{ question: "Quelle est la capitale politique du Cameroun ?", options: [{ letter:'A', text:"Yaoundé", correct:true }], explanation: "Yaoundé est le siège des institutions politiques.", xp:20 }] },
+    philosophie: { name: "Philosophie", subtitle: "La liberté et la conscience", html: `<p>La liberté est-elle totale ou encadrée par la loi ? Analyse des notions philosophiques.</p>`, quiz: [{ question: "Selon Rousseau, la liberté consiste à :", options: [{ letter:'A', text:"Obéir à la loi qu'on s'est prescrite", correct:true }], explanation: "La vraie liberté n'est pas le chaos mais le respect des règles morales et justes.", xp:20 }] },
+    viesociale: { name: "Vie Sociale", subtitle: "Le droit du travail", html: `<p>Le Contrat à Durée Indéterminée (CDI) et les obligations de l'employeur et du salarié.</p>`, quiz: [{ question: "Qu'est-ce qu'un CDI ?", options: [{ letter:'A', text:"Un contrat sans limitation de durée précise", correct:true }], explanation: "Il offre une stabilité d'emploi au travailleur.", xp:20 }] },
+    economieentreprise: { name: "Économie d'Entreprise", subtitle: "Le marketing et la stratégie", html: `<p>Le mix marketing (les 4 P : Produit, Prix, Place, Promotion).</p>`, quiz: [{ question: "Que représentent les 4P en marketing ?", options: [{ letter:'A', text:"Product, Price, Place, Promotion", correct:true }], explanation: "Ce sont les 4 piliers de la stratégie commerciale.", xp:20 }] }
+  };
+
+  let currentSubject = null;
+  let quizQuestions = [];
+  let currentQuestionIndex = 0;
+  let quizScoreValue = 0;
+  let quizLivesValue = 5;
+  let quizAnswered = false;
+
+  /* ---- STATISTIQUES (temps + réussite) ---- */
+  let statsData = { successBySubject: {}, timeByDay: {} };
+  let revisionStartTime = null;
+
+  function todayKey(){
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+
+  async function loadStats(){
+    try{
+      const res = await window.storage.get('stats-data', false);
+      if(res && res.value){ statsData = JSON.parse(res.value); }
+    }catch(e){ /* pas encore de données */ }
+  }
+
+  async function saveStats(){
+    try{ await window.storage.set('stats-data', JSON.stringify(statsData), false); }
+    catch(e){ console.error('Erreur sauvegarde stats', e); }
+  }
+
+  function recordQuizAnswer(subject, correct){
+    if(!statsData.successBySubject[subject]) statsData.successBySubject[subject] = { correct:0, total:0 };
+    statsData.successBySubject[subject].total++;
+    if(correct) statsData.successBySubject[subject].correct++;
+    saveStats();
+  }
+
+  function startRevisionTimer(){ revisionStartTime = Date.now(); }
+
+  function stopRevisionTimerAndLog(){
+    if(!revisionStartTime) return;
+    const minutes = Math.round((Date.now() - revisionStartTime) / 60000);
+    if(minutes > 0){
+      const key = todayKey();
+      statsData.timeByDay[key] = (statsData.timeByDay[key] || 0) + minutes;
+      saveStats();
+    }
+    revisionStartTime = null;
+  }
+
+  let timeChartInstance = null;
+  function renderStatsScreen(){
+    const days = [];
+    const values = [];
+    for(let i=6;i>=0;i--){
+      const d = new Date();
+      d.setDate(d.getDate()-i);
+      const key = d.toISOString().slice(0,10);
+      days.push(d.toLocaleDateString(currentLang==='fr'?'fr-FR':'en-US', {weekday:'short'}));
+      values.push(statsData.timeByDay[key] || 0);
+    }
+    const ctx = document.getElementById('timeChart');
+    if(timeChartInstance) timeChartInstance.destroy();
+    timeChartInstance = new Chart(ctx, {
+      type:'bar',
+      data:{ labels: days, datasets:[{ label: currentLang==='fr'?'Minutes':'Minutes', data: values, backgroundColor:'#0f4d28', borderRadius:6 }] },
+      options:{ plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:5 } } } }
+    });
+
+    const container = document.getElementById('successBySubject');
+    container.innerHTML = '';
+    const subjects = Object.keys(statsData.successBySubject);
+    document.getElementById('statsEmptyMsg').style.display = subjects.length === 0 ? 'block' : 'none';
+    subjects.forEach(subj => {
+      const s = statsData.successBySubject[subj];
+      const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
+      const label = lessonsData[subj] ? lessonsData[subj].name : subj;
+      const row = document.createElement('div');
+      row.className = 'subject-stat-row';
+      row.innerHTML = `<div class="lbl">${label}</div><div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div><div class="pct">${pct}%</div>`;
+      container.appendChild(row);
+    });
+  }
+
+  /* ---- BOUTIQUE DE PIÈCES ---- */
+  const shopCatalog = {
+    avatars: [
+      { id:'av1', name:'Avatar Étoile 🌟', cost:50 },
+      { id:'av2', name:'Avatar Lion 🦁', cost:80 },
+      { id:'av3', name:'Avatar Couronne 👑', cost:120 }
+    ],
+    themes: [
+      { id:'th-vert', name:'Thème Vert (défaut)', cost:0, color:'#0f4d28' },
+      { id:'th-bleu', name:'Thème Bleu Océan', cost:60, color:'#0d4f8b' },
+      { id:'th-violet', name:'Thème Violet Royal', cost:60, color:'#5b2c8c' }
+    ],
+    hints: [
+      { id:'hint1', name:'Pack de 3 indices 💡', cost:30, qty:3 },
+      { id:'hint2', name:'Pack de 10 indices 💡', cost:90, qty:10 }
+    ]
+  };
+  let ownedItems = { avatars:[], theme:'th-vert', hints:0 };
+
+  async function loadShop(){
+    try{
+      const res = await window.storage.get('shop-data', false);
+      if(res && res.value){ ownedItems = JSON.parse(res.value); }
+    }catch(e){ /* rien encore acheté */ }
+    applyTheme(ownedItems.theme || 'th-vert');
+  }
+
+  async function saveShop(){
+    try{ await window.storage.set('shop-data', JSON.stringify(ownedItems), false); }
+    catch(e){ console.error('Erreur sauvegarde boutique', e); }
+  }
+
+  function applyTheme(themeId){
+    const theme = shopCatalog.themes.find(t => t.id === themeId);
+    if(theme){ document.documentElement.style.setProperty('--vert', theme.color); }
+  }
+
+  function updateShopCoinsDisplay(){
+    const el = document.getElementById('shopCoinsDisplay');
+    if(el) el.textContent = currentUserCoins;
+  }
+
+  function renderShop(){
+    updateShopCoinsDisplay();
+    const avList = document.getElementById('shopAvatarsList');
+    avList.innerHTML = '';
+    shopCatalog.avatars.forEach(item => {
+      const owned = ownedItems.avatars.includes(item.id);
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.innerHTML = `<div class="shop-icon">${item.name.split(' ').pop()}</div>
+        <div class="flex-grow-1"><div class="fw-bold small">${item.name}</div><div class="text-secondary small">${item.cost} pièces</div></div>
+        <button class="shop-buy-btn ${owned?'owned':''}" onclick="buyItem('avatars','${item.id}',${item.cost})">${owned ? (currentLang==='fr'?'Possédé ✓':'Owned ✓') : (currentLang==='fr'?'Acheter':'Buy')}</button>`;
+      avList.appendChild(div);
+    });
+
+    const thList = document.getElementById('shopThemesList');
+    thList.innerHTML = '';
+    shopCatalog.themes.forEach(item => {
+      const owned = item.cost === 0 || ownedItems.avatars.includes('theme-'+item.id) || ownedItems.theme === item.id || (ownedItems.unlockedThemes||[]).includes(item.id);
+      const isActive = ownedItems.theme === item.id;
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.innerHTML = `<span class="theme-swatch" style="background:${item.color}"></span>
+        <div class="flex-grow-1"><div class="fw-bold small">${item.name}</div><div class="text-secondary small">${item.cost === 0 ? (currentLang==='fr'?'Gratuit':'Free') : item.cost + ' pièces'}</div></div>
+        <button class="shop-buy-btn ${isActive?'owned':''}" onclick="buyTheme('${item.id}',${item.cost})">${isActive ? (currentLang==='fr'?'Actif ✓':'Active ✓') : (owned ? (currentLang==='fr'?'Activer':'Activate') : (currentLang==='fr'?'Acheter':'Buy'))}</button>`;
+      thList.appendChild(div);
+    });
+
+    const hintList = document.getElementById('shopHintsList');
+    hintList.innerHTML = '';
+    shopCatalog.hints.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.innerHTML = `<div class="shop-icon">💡</div>
+        <div class="flex-grow-1"><div class="fw-bold small">${item.name}</div><div class="text-secondary small">${item.cost} pièces</div></div>
+        <button class="shop-buy-btn" onclick="buyHints(${item.qty},${item.cost})">${currentLang==='fr'?'Acheter':'Buy'}</button>`;
+      hintList.appendChild(div);
+    });
+  }
+
+  function buyItem(category, id, cost){
+    if(ownedItems.avatars.includes(id)){ return; }
+    if(currentUserCoins < cost){
+      alert(currentLang==='fr' ? "Pas assez de pièces !" : "Not enough coins!");
+      return;
+    }
+    currentUserCoins -= cost;
+    ownedItems.avatars.push(id);
+    updateUserUI(document.getElementById('profileNameDisplay').textContent, currentUserXp, currentUserCoins);
+    saveShop();
+    renderShop();
+  }
+
+  function buyTheme(id, cost){
+    if(ownedItems.theme === id) return;
+    const alreadyUnlocked = cost === 0 || (ownedItems.unlockedThemes||[]).includes(id);
+    if(!alreadyUnlocked){
+      if(currentUserCoins < cost){
+        alert(currentLang==='fr' ? "Pas assez de pièces !" : "Not enough coins!");
+        return;
+      }
+      currentUserCoins -= cost;
+      if(!ownedItems.unlockedThemes) ownedItems.unlockedThemes = [];
+      ownedItems.unlockedThemes.push(id);
+      updateUserUI(document.getElementById('profileNameDisplay').textContent, currentUserXp, currentUserCoins);
+    }
+    ownedItems.theme = id;
+    applyTheme(id);
+    saveShop();
+    renderShop();
+  }
+
+  function buyHints(qty, cost){
+    if(currentUserCoins < cost){
+      alert(currentLang==='fr' ? "Pas assez de pièces !" : "Not enough coins!");
+      return;
+    }
+    currentUserCoins -= cost;
+    ownedItems.hints = (ownedItems.hints || 0) + qty;
+    updateUserUI(document.getElementById('profileNameDisplay').textContent, currentUserXp, currentUserCoins);
+    saveShop();
+    renderShop();
+    updateHintCounter();
+  }
+
+  function updateHintCounter(){
+    const el = document.getElementById('hintCount');
+    if(el) el.textContent = ownedItems.hints || 0;
+    const wrap = document.getElementById('quizHintBtnWrap');
+    if(wrap) wrap.style.display = (ownedItems.hints || 0) > 0 ? 'block' : 'none';
+  }
+
+  function useHint(){
+    if(!ownedItems.hints || ownedItems.hints <= 0) return;
+    const q = quizQuestions[currentQuestionIndex];
+    if(!q || quizAnswered) return;
+    ownedItems.hints--;
+    saveShop();
+    updateHintCounter();
+    const wrongOptions = q.options.filter(o => !o.correct);
+    if(wrongOptions.length > 0){
+      const toRemove = wrongOptions[0];
+      const div = document.getElementById('opt-' + toRemove.letter);
+      if(div){
+        div.style.opacity = '0.3';
+        div.style.pointerEvents = 'none';
+        div.innerHTML += ' ❌';
+      }
+    }
+  }
+
+  /* ---- CHAT IA / PROF VIRTUEL ---- */
+  let chatHistory = [];
+
+  function appendChatBubble(text, sender){
+    const win = document.getElementById('chatWindow');
+    const div = document.createElement('div');
+    div.className = 'chat-bubble ' + sender;
+    div.textContent = text;
+    win.appendChild(div);
+    const scrollArea = document.getElementById('chatScrollArea');
+    scrollArea.scrollTop = scrollArea.scrollHeight;
+  }
+
+  function initChatWelcome(){
+    const win = document.getElementById('chatWindow');
+    if(win.children.length === 0){
+      appendChatBubble(currentLang==='fr'
+        ? "Bonjour ! Je suis ton prof virtuel 🎓. Pose-moi une question sur la Puériculture, la Diététique, les Maths ou toute autre matière ESF !"
+        : "Hello! I'm your virtual teacher 🎓. Ask me a question about Childcare, Nutrition, Math or any other ESF subject!", 'bot');
+    }
+  }
+
+  async function sendChatMessage(){
+    const input = document.getElementById('chatInput');
+    const question = input.value.trim();
+    if(!question) return;
+    appendChatBubble(question, 'user');
+    chatHistory.push({ role:'user', content: question });
+    input.value = '';
+    document.getElementById('chatTyping').style.display = 'block';
+
+    try{
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          system: (currentLang==='fr'
+            ? "Tu es un professeur virtuel bienveillant pour des élèves de Terminale ESF (Économie Sociale et Familiale) au Cameroun. Réponds de façon claire, simple et pédagogique en français, avec des exemples concrets. Reste concis (5-8 phrases maximum)."
+            : "You are a friendly virtual teacher for ESF Terminale students in Cameroon. Answer clearly and pedagogically in English, with concrete examples. Stay concise (5-8 sentences max)."),
+          messages: chatHistory
+        })
+      });
+      const data = await response.json();
+      const textBlock = (data.content || []).find(b => b.type === 'text');
+      const answer = textBlock ? textBlock.text : (currentLang==='fr' ? "Désolé, je n'ai pas pu répondre. Réessaie." : "Sorry, I couldn't answer. Try again.");
+      appendChatBubble(answer, 'bot');
+      chatHistory.push({ role:'assistant', content: answer });
+    }catch(e){
+      appendChatBubble(currentLang==='fr' ? "Erreur de connexion. Réessaie plus tard." : "Connection error. Try again later.", 'bot');
+    }finally{
+      document.getElementById('chatTyping').style.display = 'none';
+    }
+  }
+
+  function openLesson(subject){
+    if (!lessonsData[subject]){
+      alert("Matière en cours de préparation !");
+      return;
+    }
+    currentSubject = subject;
+    const data = lessonsData[subject];
+    document.getElementById('leconTitle').textContent = data.name;
+    document.getElementById('leconSubtitle').textContent = data.subtitle;
+    document.getElementById('leconContent').innerHTML = data.html;
+    startRevisionTimer();
+    showScreen('lecon');
+  }
+
+  function speakLesson(){
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const textToSpeech = document.getElementById('leconTitle').innerText + ". " + document.getElementById('leconContent').innerText;
+      const utterance = new SpeechSynthesisUtterance(textToSpeech);
+      utterance.lang = currentLang === 'fr' ? 'fr-FR' : 'en-US';
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("La synthèse vocale n'est pas supportée par votre navigateur.");
+    }
+  }
+
+  function startQuiz(){
+    const data = lessonsData[currentSubject];
+    quizQuestions = data.quiz;
+    currentQuestionIndex = 0;
+    quizScoreValue = 0;
+    quizLivesValue = 5;
+    showScreen('quiz');
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    quizAnswered = false;
+    const q = quizQuestions[currentQuestionIndex];
+    document.getElementById('quizProgress').textContent = `Question ${currentQuestionIndex + 1}/${quizQuestions.length}`;
+    document.getElementById('quizQuestion').textContent = q.question;
+    document.getElementById('quizScore').textContent = quizScoreValue;
+    document.getElementById('quizLives').textContent = '❤️'.repeat(quizLivesValue) + ' ' + quizLivesValue + '/5';
+    document.getElementById('quizFeedback').innerHTML = '';
+    document.getElementById('quizExplanationBox').style.display = 'none';
+    document.getElementById('quizNextBtn').style.display = 'none';
+    updateHintCounter();
+
+    const optionsDiv = document.getElementById('quizOptions');
+    optionsDiv.innerHTML = '';
+    q.options.forEach(opt => {
+      const div = document.createElement('div');
+      div.className = 'quiz-option';
+      div.id = 'opt-' + opt.letter;
+      div.style.opacity = '1';
+      div.style.pointerEvents = 'auto';
+      div.innerHTML = `<div class="quiz-letter">${opt.letter}</div> ${opt.text}`;
+      div.style.cursor = 'pointer';
+      div.onclick = () => answerQuestion(opt.letter);
+      optionsDiv.appendChild(div);
+    });
+  }
+
+  function answerQuestion(letter){
+    quizAnswered = true;
+    const q = quizQuestions[currentQuestionIndex];
+    const chosen = q.options.find(o => o.letter === letter);
+    const correctOpt = q.options.find(o => o.correct);
+
+    q.options.forEach(opt => {
+      const div = document.getElementById('opt-' + opt.letter);
+      div.onclick = null;
+      div.style.cursor = 'default';
+      if (opt.correct){
+        div.classList.add('correct');
+        div.innerHTML += ' <span class="ms-auto">✅</span>';
+      }
+    });
+
+    const feedback = document.getElementById('quizFeedback');
+    if (chosen.correct){
+      quizScoreValue += q.xp;
+      currentUserXp += q.xp;
+      currentUserCoins += 5;
+      feedback.style.color = 'var(--vert)';
+      feedback.textContent = `Bonne réponse ! 🎉 +${q.xp} XP`;
+    } else {
+      quizLivesValue = Math.max(0, quizLivesValue - 1);
+      feedback.style.color = 'var(--rouge)';
+      feedback.textContent = `Mauvaise réponse. Bonne réponse : ${correctOpt.letter}.`;
+    }
+
+    recordQuizAnswer(currentSubject, !!chosen.correct);
+
+    if(q.explanation){
+      document.getElementById('quizExplanationText').textContent = q.explanation;
+      document.getElementById('quizExplanationBox').style.display = 'block';
+    }
+
+    document.getElementById('quizScore').textContent = quizScoreValue;
+    updateUserUI(document.getElementById('profileNameDisplay').textContent, currentUserXp, currentUserCoins);
+    document.getElementById('quizLives').textContent = '❤️'.repeat(quizLivesValue) + ' ' + quizLivesValue + '/5';
+
+    const nextBtn = document.getElementById('quizNextBtn');
+    nextBtn.style.display = 'block';
+    nextBtn.textContent = (currentQuestionIndex === quizQuestions.length - 1) ? 'Terminer' : (currentLang === 'fr' ? 'Question suivante' : 'Next Question');
+  }
+
+  function nextQuestion(){
+    currentQuestionIndex++;
+    if (currentQuestionIndex >= quizQuestions.length){
+      stopRevisionTimerAndLog();
+      showScreen('defis');
+      return;
+    }
+    renderQuestion();
+  }
+
+  /* ---- FLASHCARDS LOGIC ---- */
+  const flashcardsList = [
+    { subject: "Puériculture", front: "Loi céphalo-caudale", back: "Progression du contrôle musculaire de la tête vers les pieds." },
+    { subject: "Diététique", front: "Rôle des protides", back: "Rôle bâtisseur et de construction cellulaire." },
+    { subject: "Technique Culinaire", front: "Principe de la marche en avant", back: "Éviter le croisement entre les produits sales et propres." },
+    { subject: "Gérontologie", front: "Gérontologie vs Gériatrie", back: "Gérontologie = étude globale du vieillissement. Gériatrie = médecine des personnes âgées." }
+  ];
+  let currentFcIndex = 0;
+
+  function openFlashcards(){
+    currentFcIndex = 0;
+    renderFlashcard();
+    showScreen('flashcards');
+  }
+
+  function renderFlashcard(){
+    const fc = flashcardsList[currentFcIndex];
+    document.getElementById('fcSubject').textContent = fc.subject;
+    document.getElementById('fcFrontText').textContent = fc.front;
+    document.getElementById('fcBackText').textContent = fc.back;
+    document.getElementById('flashcardObj').classList.remove('flipped');
+  }
+
+  function flipCard(){
+    document.getElementById('flashcardObj').classList.toggle('flipped');
+  }
+
+  function nextFlashcard(dir){
+    currentFcIndex = (currentFcIndex + dir + flashcardsList.length) % flashcardsList.length;
+    renderFlashcard();
+  }
+
+  /* ---- SIMULATEUR DE MOYENNE ---- */
+  function calculerMoyenne(){
+    const p = parseFloat(document.getElementById('notePuer').value) || 0;
+    const c = parseFloat(document.getElementById('noteCul').value) || 0;
+    const f = parseFloat(document.getElementById('noteFr').value) || 0;
+    const m = parseFloat(document.getElementById('noteMath').value) || 0;
+
+    const totalPoints = (p * 4) + (c * 4) + (f * 3) + (m * 2);
+    const totalCoeffs = 4 + 4 + 3 + 2;
+    const moyenne = totalPoints / totalCoeffs;
+
+    const container = document.getElementById('resultatSimContainer');
+    container.style.display = 'block';
+    document.getElementById('moyenneFinaleTxt').textContent = `Moyenne : ${moyenne.toFixed(2)} / 20`;
+    
+    const mention = document.getElementById('mentionTxt');
+    if(moyenne >= 16) { mention.textContent = "Mention Très Bien 🌟 Félicitations !"; mention.style.color = "var(--vert)"; }
+    else if(moyenne >= 14) { mention.textContent = "Mention Bien 👏 Excellent travail !"; mention.style.color = "var(--vert)"; }
+    else if(moyenne >= 12) { mention.textContent = "Mention Assez Bien 👍 Tu valides haut la main."; mention.style.color = "#0c8599"; }
+    else if(moyenne >= 10) { mention.textContent = "Passable 📌 Admis à l'examen !"; mention.style.color = "var(--or)"; }
+    else { mention.textContent = "Insuffisant ❌ Il faut redoubler d'efforts !"; mention.style.color = "var(--rouge)"; }
+  }
+
+  function showScreen(name){
+    if(name !== 'lecon' && name !== 'quiz'){ stopRevisionTimerAndLog(); }
+    document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById('screen-' + name);
+    if (target) target.classList.add('active');
+    if(name === 'chat-ia') initChatWelcome();
+    if(name === 'boutique') renderShop();
+    if(name === 'stats') renderStatsScreen();
+  }
+
+  function toggleMatiere(type){
+    document.getElementById('pillGeneral').classList.toggle('active-pill', type === 'general');
+    document.getElementById('pillPro').classList.toggle('active-pill', type === 'pro');
+    document.getElementById('matieresGeneral').style.display = (type === 'general') ? 'block' : 'none';
+    document.getElementById('matieresPro').style.display = (type === 'pro') ? 'block' : 'none';
+  }
+
+  function toggleClassement(type){
+    document.getElementById('pillHebdo').classList.toggle('active-pill', type === 'hebdo');
+    document.getElementById('pillGlobal').classList.toggle('active-pill', type === 'global');
+  }
+
+  /* ---- PWA : tout est intégré dans CE fichier unique ---- */
+  /* 1) Manifest généré en mémoire (Blob) et attaché au <head> */
+  const manifestData = {
+    name: "Smart Révision CMR",
+    short_name: "SmartRévision",
+    description: "Révise tes cours ESF, progresse et réussis tes examens au Cameroun.",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#fdfcf8",
+    theme_color: "#0f4d28",
+    orientation: "portrait",
+    icons: []
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+  const manifestUrl = URL.createObjectURL(manifestBlob);
+  const manifestLink = document.createElement('link');
+  manifestLink.rel = 'manifest';
+  manifestLink.href = manifestUrl;
+  document.head.appendChild(manifestLink);
+
+  /* 2) Service Worker généré en mémoire (Blob) : cache l'appli pour le mode hors-ligne */
+  const swCode = `
+    const CACHE_NAME = 'smart-revision-cmr-v1';
+    self.addEventListener('install', (event) => {
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', (event) => {
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', (event) => {
+      if (event.request.url.includes('api.anthropic.com')) return;
+      event.respondWith(
+        caches.open(CACHE_NAME).then((cache) =>
+          cache.match(event.request).then((cached) => {
+            const fetchPromise = fetch(event.request).then((networkResponse) => {
+              if (event.request.method === 'GET' && networkResponse.status === 200) {
+                cache.put(event.request, networkResponse.clone());
+              }
+              return networkResponse;
+            }).catch(() => cached);
+            return cached || fetchPromise;
+          })
+        )
+      );
+    });
+  `;
+  let swRegistered = false;
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      try {
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swUrl)
+          .then(() => { swRegistered = true; })
+          .catch(err => console.log('SW erreur :', err));
+      } catch(e){ console.log('SW non supporté dans ce contexte.', e); }
+    });
+  }
+
+  /* 3) Bouton "Installer l'application" (prompt natif Ajouter à l'écran d'accueil) */
+  let deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
+
+  function installPWA(){
+    bootstrap.Modal.getInstance(document.getElementById('menuModal'))?.hide();
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
+    } else {
+      alert(currentLang === 'fr'
+        ? "Pour installer l'application : ouvre le menu de ton navigateur (⋮ ou partager) puis choisis \"Ajouter à l'écran d'accueil\"."
+        : "To install the app: open your browser menu (⋮ or share) then choose \"Add to Home Screen\".");
+    }
+  }
+
+  loadStats();
+  loadShop();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const sbClient = window.supabase.createClient(
+    "https://rjmoignaxtwosysajqdg.supabase.co",
+    "sb_publishable_SEpp8YirCmp6A4eNYg2wvQ_LqP8FpxJ"
+  );
+</script>
+</body>
+</html>
